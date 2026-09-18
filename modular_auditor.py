@@ -11,6 +11,12 @@ def get_valid_input():
         if value <= 0:
             print("Please enter a positive whole number.")
             return None
+        # elif value > 500:
+        #     print("Value exceeds maximum allowed (500).")
+        #     generate_report(total_inventory, failed_entries)
+        # elif total_inventory + value > 500:
+        #     print("Total inventory cannot exceed 500 units.")
+        #     generate_report(total_inventory, failed_entries)
         return value
     else:
         print("Invalid input. Please enter a whole number.")
@@ -32,10 +38,19 @@ def generate_report(total_units, failed_entries):
 while True:
     value = get_valid_input()
     if value == "quit":
+        generate_report(total_inventory, failed_entries)
         break
     elif value is None:
         failed_entries += 1
         continue
+    elif value > 500 or total_inventory + value > 500:
+        failed_entries += 1
+        print("Error: Value exceeds maximum allowed (500) or total inventory limit.")
+        total_inventory = process_delivery(total_inventory, value)
+        tax = calculate_tax(value)
+        total_tax += tax
+        print(f"Tax for total entry: {tax:.2f}")
+        break
     else:
         total_inventory = process_delivery(total_inventory, value)
         tax = calculate_tax(value)
