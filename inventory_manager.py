@@ -163,7 +163,7 @@ class Inventory:
 
 if __name__ == "__main__":
     inventory = Inventory()
-    # inventory.load_inventory()
+    inventory.load_inventory()
     while True:
         print("=============================== \n INVENTORY MANAGEMENT SYSTEM \n===============================")
         print("1. Add Product")
