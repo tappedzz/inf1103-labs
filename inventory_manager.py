@@ -3,12 +3,31 @@ import time
 from abc import ABC, abstractmethod
 
 
-class Product(ABC):
-    def __init__(self, product_id, name, price, stock):
-        self.__product_id = product_id
+class Supplier():
+    def __init__(self, supplier_id: str, name: str, contact_email: str):
+        self.__supplier_id = supplier_id
         self.__name = name
-        self.__price = price
-        self.__stock = stock
+        self.__contact_email = contact_email
+
+    def get_supplier_id(self) -> str:
+        return self.__supplier_id
+
+    def get_supplier_name(self) -> str:
+        return self.__name
+
+    def get_contact_email(self) -> str:
+        return self.__contact_email
+
+    def display_information(self):
+        print(f"Supplier ID: {self.__supplier_id} | Name: {self.__name} | Contact Email: {self.__contact_email}")
+
+class Product(ABC):
+    def __init__(self, product_id: str, name: str, price: float, stock: int, supplier: Supplier):
+        self.__product_id: str = product_id
+        self.__name: str = name
+        self.__price: float = price
+        self.__stock: int = stock
+        self.__supplier: Supplier = supplier
 
     def update_stock(self, quantity):
         self.__stock = quantity
@@ -17,44 +36,73 @@ class Product(ABC):
     def display_information(self):
         print(f"ID: {self.__product_id} | Name: {self.__name} | Price: ${self.__price:.2f} | Stock: {self.__stock}")
 
-    def get_product_id(self):
+    def get_product_id(self) -> str:
         return self.__product_id
 
-    def get_product_name(self):
+    def get_product_name(self) -> str:
         return self.__name
 
-    def get_product_price(self):
+    def get_product_price(self) -> float:
         return self.__price
 
-    def get_product_stock(self):
+    def get_product_stock(self) -> int:
         return self.__stock
        
     @abstractmethod
-    def get_fulfilment_info(self):
+    def get_fulfilment_info(self) -> str:
         pass
+
+    def get_supplier(self) -> Supplier:
+        return self.__supplier
 
 class CanBeShipped(ABC):
     @abstractmethod
-    def calculate_shipping_cost(self):
+    def calculate_shipping_cost(self) -> float:
         pass
+
+class OrderLine(Product):
+    def __init__(self, product: Product, quantity: int):
+        self.__product: Product = product
+        self.__quantity: int = quantity
+
+    def get_quantity(self) -> int:
+        return self.__quantity
+
+    def get_product(self) -> Product:
+        return self.__product
+
+    def calculate_subtotal(self) -> float:
+        return self.__product.get_product_price() * self.__quantity
+
+class Order:
+    def __init__(self):
+        self.__order_lines: list[OrderLine] = []
+
+    def add_order_line(self, order_line: OrderLine) -> None:
+        self.__order_lines.append(order_line)
+
+    def calculate_total(self) -> float:
+        total = 0.0
+        for order_line in self.__order_lines:
+            total += order_line.calculate_subtotal()
+        return total
 
 
 class PhysicalProduct(Product, CanBeShipped):
-    def __init__(self, product_id, product_name,product_price, stock, weight):
-        super().__init__(product_id, product_name, product_price, stock)
-        self.__weight = weight
-
+    def __init__(self, product_id: str, product_name: str, product_price: float, stock: int, weight: float, supplier: Supplier):
+        super().__init__(product_id, product_name, product_price, stock, supplier)
+        self.__weight: float = weight
     def display_information(self):
         super().display_information()
         print(f"Weight: {self.__weight} kg")
 
-    def get_weight(self):
+    def get_weight(self) -> float:
         return self.__weight
 
-    def get_fulfilment_info(self):
+    def get_fulfilment_info(self) -> str:
         return "This product requires Physical Shipping"
 
-    def calculate_shipping_cost(self):
+    def calculate_shipping_cost(self) -> float:
         if self.__weight >10:
             shipping_price = self.get_product_price() * 0.5
         elif self.__weight > 5:
@@ -65,33 +113,41 @@ class PhysicalProduct(Product, CanBeShipped):
         
 
 class DigitalProduct(Product):
-    def __init__(self, product_id, product_name,product_price, stock, downloadsize):
-        super().__init__(product_id, product_name, product_price, stock)
-        self.__downloadsize = downloadsize
+    def __init__(self, product_id: str, product_name: str, product_price: float, stock: int, downloadsize: int, supplier: Supplier):
+        super().__init__(product_id, product_name, product_price, stock, supplier)
+        self.__downloadsize: int = downloadsize
 
-    def get_downloadsize(self):
+    def get_downloadsize(self) -> int:
         return self.__downloadsize
-    
     def display_information(self):
         super().display_information()
         print(f"Download Size: {self.__downloadsize} mb")
 
-    def get_fulfilment_info(self):
-        return ("This product requires Digital Delivery")
+    def get_fulfilment_info(self) -> str:
+        return "This product requires Digital Delivery"
 
+
+DEFAULT_SUPPLIER = Supplier("SUP001", "Default Supplier", "supplier@exmaple.com")
 class Inventory:
     def __init__(self):
-        self.__products = {}
+        self.__products: dict[str, Product] = {}
     
 
-    def add_product(self, product):
+    def add_product(self, product: Product) -> None:
         if product.get_product_id() in self.__products:
             print(f"Product {product.get_product_id()} is already in inventory")
         else:
             self.__products[product.get_product_id()]=product
             print("Product added successfully!")
+
+    def remove_product(self,product_id:str) -> None:
+        if product_id in self.__products:
+            del self.__products[product_id]
+            print(f"Product {product_id} removed from inventory.")
+        else:
+            print(f"Product with ID {product_id} not found in inventory.")
     
-    def update_stock(self, product_id, quantity):
+    def update_stock(self, product_id: str, quantity: int) -> None:
         if product_id not in self.__products:
             print(f"Product with ID {product_id} not found in inventory.")
             return
@@ -102,11 +158,14 @@ class Inventory:
             print(f"Product {product_id} removed from inventory due to low stock.")
         
 
-    def search_product(self, product_id):
+    def search_product(self, product_id:str) -> None:
         if product_id in self.__products:
             self.__products[product_id].display_information()
         else:
             print(f"Product with ID {product_id} not found in inventory.")
+
+    def find_product(self, product_id: str) -> Product | None:
+        return self.__products.get(product_id, None)
 
     def load_inventory(self, filename="inventory.json"):
         try:
@@ -114,9 +173,9 @@ class Inventory:
                 data=json.load(file)
                 for product_id, info in data.items():
                     if info["type"]=="physical":
-                        product = PhysicalProduct(product_id, info["name"], info["price"], info["stock"], info["weight"])
+                        product = PhysicalProduct(product_id, info["name"], info["price"], info["stock"], info["weight"], DEFAULT_SUPPLIER)
                     else:
-                        product = DigitalProduct(product_id, info["name"], info["price"], info["stock"], info["size"])
+                        product = DigitalProduct(product_id, info["name"], info["price"], info["stock"], info["size"], DEFAULT_SUPPLIER)
                     self.__products[product_id] = product
                 print(f"{filename} found and loaded successfully")
         except FileNotFoundError:
@@ -193,9 +252,9 @@ if __name__ == "__main__":
                 print("Price must be a number and quantity must be a whole number. Product not added.")
                 continue
             if phyordigi.lower()=="p":
-                    new_product = PhysicalProduct(product_id, product_name, product_price, quantity, weight)
+                    new_product = PhysicalProduct(product_id, product_name, product_price, quantity, weight, DEFAULT_SUPPLIER)
             if phyordigi.lower()=="d":
-                    new_product = DigitalProduct(product_id, product_name, product_price, quantity, weight)
+                    new_product = DigitalProduct(product_id, product_name, product_price, quantity, weight, DEFAULT_SUPPLIER)
             inventory.add_product(new_product)
         elif choice == '2':
             product_id = input("Enter product ID to update: ").strip().upper()
