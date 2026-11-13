@@ -5,9 +5,9 @@ from abc import ABC, abstractmethod
 
 class Supplier():
     def __init__(self, supplier_id: str, name: str, contact_email: str):
-        self.__supplier_id = supplier_id
-        self.__name = name
-        self.__contact_email = contact_email
+        self.__supplier_id: str = supplier_id
+        self.__name: str = name
+        self.__contact_email: str = contact_email
 
     def get_supplier_id(self) -> str:
         return self.__supplier_id
@@ -18,7 +18,7 @@ class Supplier():
     def get_contact_email(self) -> str:
         return self.__contact_email
 
-    def display_information(self):
+    def display_information(self) -> None:
         print(f"Supplier ID: {self.__supplier_id} | Name: {self.__name} | Contact Email: {self.__contact_email}")
 
 class Product(ABC):
@@ -29,11 +29,11 @@ class Product(ABC):
         self.__stock: int = stock
         self.__supplier: Supplier = supplier
 
-    def update_stock(self, quantity):
+    def update_stock(self, quantity: int) -> None:
         self.__stock = quantity
         print(f"Stock updated successfully for {self.__name}.")
 
-    def display_information(self):
+    def display_information(self) -> None:
         print(f"ID: {self.__product_id} | Name: {self.__name} | Price: ${self.__price:.2f} | Stock: {self.__stock}")
 
     def get_product_id(self) -> str:
@@ -108,7 +108,7 @@ class PhysicalProduct(Product, CanBeShipped):
     def __init__(self, product_id: str, product_name: str, product_price: float, stock: int, weight: float, supplier: Supplier):
         super().__init__(product_id, product_name, product_price, stock, supplier)
         self.__weight: float = weight
-    def display_information(self):
+    def display_information(self) -> None:
         super().display_information()
         print(f"Weight: {self.__weight} kg")
 
@@ -129,13 +129,13 @@ class PhysicalProduct(Product, CanBeShipped):
         
 
 class DigitalProduct(Product):
-    def __init__(self, product_id: str, product_name: str, product_price: float, stock: int, downloadsize: int, supplier: Supplier):
+    def __init__(self, product_id: str, product_name: str, product_price: float, stock: int, downloadsize: float, supplier: Supplier):
         super().__init__(product_id, product_name, product_price, stock, supplier)
-        self.__downloadsize: int = downloadsize
+        self.__downloadsize: float = downloadsize
 
-    def get_downloadsize(self) -> int:
+    def get_downloadsize(self) -> float:
         return self.__downloadsize
-    def display_information(self):
+    def display_information(self) -> None:
         super().display_information()
         print(f"Download Size: {self.__downloadsize} mb")
 
@@ -143,7 +143,7 @@ class DigitalProduct(Product):
         return "This product requires Digital Delivery"
 
 
-DEFAULT_SUPPLIER = Supplier("SUP001", "Default Supplier", "supplier@exmaple.com")
+DEFAULT_SUPPLIER = Supplier("SUP001", "Default Supplier", "supplier@example.com")
 class Inventory:
     def __init__(self):
         self.__products: dict[str, Product] = {}
@@ -183,7 +183,10 @@ class Inventory:
     def find_product(self, product_id: str) -> Product | None:
         return self.__products.get(product_id, None)
 
-    def load_inventory(self, filename="inventory.json"):
+    def get_products(self) -> list[Product]:
+        return list(self.__products.values())
+
+    def load_inventory(self, filename: str = "inventory.json") -> None:
         try:
             with open(filename, "r") as file:
                 data=json.load(file)
@@ -199,7 +202,7 @@ class Inventory:
         except json.JSONDecodeError:
             print("Error reading inventory file. Starting with empty inventory")
 
-    def display_all(self):
+    def display_all(self) -> None:
         if not self.__products:
             print("Inventory is empty.")
         else:
@@ -209,7 +212,7 @@ class Inventory:
                 product.display_information()
             print("--------------------------------")
     
-    def save_inventory(self, filename="inventory.json"):
+    def save_inventory(self, filename: str = "inventory.json") -> None:
         data={}
         for product_id, product in self.__products.items():
             data[product_id]={
