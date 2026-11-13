@@ -60,7 +60,7 @@ class CanBeShipped(ABC):
     def calculate_shipping_cost(self) -> float:
         pass
 
-class OrderLine(Product):
+class OrderLine():
     def __init__(self, product: Product, quantity: int):
         self.__product: Product = product
         self.__quantity: int = quantity
@@ -75,10 +75,12 @@ class OrderLine(Product):
         return self.__product.get_product_price() * self.__quantity
 
 class Order:
-    def __init__(self):
+    def __init__(self, order_id: str):
+        self.__order_id: str = order_id
         self.__order_lines: list[OrderLine] = []
 
-    def add_order_line(self, order_line: OrderLine) -> None:
+    def add_order_line(self, product: Product, quantity: int) -> None:
+        order_line = OrderLine(product, quantity)
         self.__order_lines.append(order_line)
 
     def calculate_total(self) -> float:
@@ -86,6 +88,20 @@ class Order:
         for order_line in self.__order_lines:
             total += order_line.calculate_subtotal()
         return total
+
+    def get_order_lines(self) -> list[OrderLine]:
+        return self.__order_lines
+
+    def display_order_summary(self) -> None:
+        print(f"Order ID: {self.__order_id}")
+        print("Order Summary:")
+        for order_line in self.__order_lines:
+            product = order_line.get_product()
+            quantity = order_line.get_quantity()
+            subtotal = order_line.calculate_subtotal()
+            print(f"Product: {product.get_product_name()} | Quantity: {quantity} | Subtotal: ${subtotal:.2f}")
+        total = self.calculate_total()
+        print(f"Total Order Amount: ${total:.2f}")
 
 
 class PhysicalProduct(Product, CanBeShipped):
